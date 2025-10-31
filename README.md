@@ -1,6 +1,10 @@
-# Deno + SvelteKit Dinosaur App Tutorial
+# Deno + SvelteKit Application
 
-A tutorial project demonstrating how to build a full-stack web application using Deno and SvelteKit. This project showcases modern web development practices with TypeScript, server-side rendering, and API routes.
+A full-stack web application using Deno and SvelteKit, featuring:
+- **GitHub PR Analysis**: Compare your current pull request activity against previous periods
+- **Dinosaur Database**: Browse and learn about dinosaurs (tutorial example)
+
+This project showcases modern web development practices with TypeScript, server-side rendering, and API routes.
 
 ## Make it your own!
 
@@ -77,22 +81,47 @@ deno run build
 deno run preview
 ```
 
+## Features
+
+### 1. GitHub PR Analysis (`/github-stats`)
+
+Analyze your GitHub pull request activity with comprehensive statistics:
+
+- **Current Period Analysis**: Last 6 months of PR activity
+- **Previous Period Comparison**: Compare against 6-12 months ago
+- **Key Metrics**:
+  - PRs per month (rate calculation)
+  - Total PRs created
+  - Merge rate percentage
+  - Open, merged, and closed PR counts
+  - Rate change comparison with percentage
+
+**How to use:**
+1. Generate a GitHub Personal Access Token at https://github.com/settings/tokens
+   - Required scopes: `repo` and `user`
+2. Enter your GitHub username and token on the `/github-stats` page
+3. Click "Analyze PRs" to fetch and compare your statistics
+
+**Note**: Your token is only used client-side and sent directly to the GitHub API. It's not stored on any server.
+
+### 2. Dinosaur Database (`/[dinosaur]`)
+
+A tutorial example demonstrating SvelteKit features:
+- Dynamic routes with parameter handling
+- API endpoints serving JSON data
+- Server-side data loading
+
 ## How It Works
 
-### 1. Homepage (`/`)
+### GitHub PR Analysis
 
-- Loads all dinosaurs from the API endpoint
-- Displays them as clickable links
-- Uses SvelteKit's `load` function for server-side data fetching
+- **API Integration**: Uses GitHub's Search API to fetch pull requests
+- **Date Range Calculation**: Automatically calculates current (0-6 months) and previous (6-12 months) periods
+- **Statistics Engine**: Processes PR data to calculate rates, percentages, and comparisons
+- **Client-side Rendering**: Interactive Svelte 5 components with modern runes syntax
 
-### 2. API Routes (`/api/dinosaurs`)
+### Dinosaur App
 
-- Serves dinosaur data from a JSON file
-- Uses SvelteKit's server routes feature
-- Returns data in JSON format
-
-### 3. Dynamic Routes (`/[dinosaur]`)
-
-- Matches any dinosaur name in the URL
-- Fetches specific dinosaur data
-- Displays detailed information with a back link
+- Homepage loads dinosaur data from API endpoint
+- Dynamic routes match dinosaur names in URLs
+- Server-side data fetching with SvelteKit's load functions
