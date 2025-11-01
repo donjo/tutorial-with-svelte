@@ -1,7 +1,8 @@
 {
-	"name": "tutorial-with-svelte",
+	"name": "github-pr-analysis",
+	"description": "Analyze your GitHub pull request activity and compare rates over time",
 	"private": true,
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
