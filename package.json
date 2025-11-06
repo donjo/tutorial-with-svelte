@@ -1,6 +1,6 @@
 {
-	"name": "github-pr-analysis",
-	"description": "Analyze your GitHub pull request activity and compare rates over time",
+	"name": "unicorn-tutorial-svelte",
+	"description": "An interactive unicorn tutorial application built with Svelte",
 	"private": true,
 	"version": "1.0.0",
 	"type": "module",

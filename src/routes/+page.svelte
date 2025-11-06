@@ -1,166 +1,126 @@
 <script lang="ts">
-  import type { PRComparison } from '$lib/github';
-
-  let username = $state('');
-  let token = $state('');
-  let loading = $state(false);
-  let error = $state('');
-  let analysis = $state<PRComparison | null>(null);
-
-  async function loadStats() {
-    if (!username.trim()) {
-      error = 'Please enter a GitHub username';
-      return;
-    }
-    if (!token.trim()) {
-      error = 'Please enter a GitHub token';
-      return;
-    }
-
-    loading = true;
-    error = '';
-    analysis = null;
-
-    try {
-      const params = new URLSearchParams({
-        username: username.trim(),
-        token: token.trim()
-      });
-
-      const response = await fetch(`/api/github/stats?${params}`);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch stats');
-      }
-
-      analysis = await response.json();
-
-      // Save username to localStorage for convenience
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('github_username', username.trim());
-      }
-    } catch (err) {
-      error = err instanceof Error ? err.message : 'An error occurred';
-      console.error('Error loading stats:', err);
-    } finally {
-      loading = false;
-    }
+  interface Unicorn {
+    id: number;
+    name: string;
+    color: string;
+    power: string;
+    emoji: string;
   }
 
-  // Load saved username on mount
-  $effect(() => {
-    if (typeof localStorage !== 'undefined') {
-      const savedUsername = localStorage.getItem('github_username');
-      if (savedUsername) {
-        username = savedUsername;
-      }
-    }
-  });
+  let unicornCount = $state(0);
+  let selectedUnicorn = $state<Unicorn | null>(null);
+  let magicLevel = $state(0);
+  let showSparkles = $state(false);
 
-  function getChangeColor(change: number): string {
-    if (change > 0) return 'green';
-    if (change < 0) return 'red';
-    return 'gray';
+  const unicorns: Unicorn[] = [
+    { id: 1, name: 'Sparkle', color: 'Pink', power: 'Healing', emoji: '🦄' },
+    { id: 2, name: 'Rainbow', color: 'Rainbow', power: 'Joy', emoji: '🌈' },
+    { id: 3, name: 'Starlight', color: 'Silver', power: 'Wisdom', emoji: '✨' },
+    { id: 4, name: 'Luna', color: 'Purple', power: 'Dreams', emoji: '🌙' },
+    { id: 5, name: 'Sunshine', color: 'Gold', power: 'Energy', emoji: '☀️' }
+  ];
+
+  function addUnicorn() {
+    unicornCount += 1;
+    magicLevel = Math.min(magicLevel + 10, 100);
+    triggerSparkles();
   }
 
-  function getChangeIcon(change: number): string {
-    if (change > 0) return '📈';
-    if (change < 0) return '📉';
-    return '➡️';
+  function selectUnicorn(unicorn: Unicorn) {
+    selectedUnicorn = unicorn;
+    magicLevel = Math.min(magicLevel + 20, 100);
+    triggerSparkles();
+  }
+
+  function triggerSparkles() {
+    showSparkles = true;
+    setTimeout(() => {
+      showSparkles = false;
+    }, 1000);
+  }
+
+  function resetMagic() {
+    unicornCount = 0;
+    selectedUnicorn = null;
+    magicLevel = 0;
   }
 </script>
 
 <main>
-  <h1>GitHub PR Analysis</h1>
-  <p class="subtitle">Compare your current pull request rate against your previous 6-month period.</p>
+  <h1>🦄 Welcome to Unicorn Land! 🦄</h1>
+  <p class="subtitle">Learn about magical unicorns and their amazing powers!</p>
 
-  <div class="config-section">
-    <div class="input-group">
-      <label for="username">GitHub Username:</label>
-      <input
-        id="username"
-        type="text"
-        bind:value={username}
-        placeholder="octocat"
-        disabled={loading}
-      />
+  <div class="magic-meter">
+    <h3>Magic Level: {magicLevel}%</h3>
+    <div class="meter">
+      <div class="meter-fill" style="width: {magicLevel}%"></div>
     </div>
-
-    <div class="input-group">
-      <label for="token">GitHub Token:</label>
-      <input
-        id="token"
-        type="password"
-        bind:value={token}
-        placeholder="ghp_..."
-        disabled={loading}
-      />
-      <small>
-        <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">
-          Generate a token
-        </a>
-        (needs 'repo' and 'user' scopes)
-      </small>
-    </div>
-
-    <button onclick={loadStats} disabled={loading} class="btn-primary">
-      {loading ? 'Loading...' : 'Analyze PRs'}
-    </button>
+    {#if showSparkles}
+      <div class="sparkles">✨ ✨ ✨ ✨ ✨</div>
+    {/if}
   </div>
 
-  {#if error}
-    <div class="error-message">
-      <strong>Error:</strong> {error}
+  <div class="counter-section">
+    <h2>Unicorn Counter</h2>
+    <div class="counter-display">
+      <p class="big-number">{unicornCount}</p>
+      <p class="label">Unicorns Summoned</p>
     </div>
-  {/if}
+    <div class="button-group">
+      <button onclick={addUnicorn} class="btn-primary">
+        🦄 Summon Unicorn
+      </button>
+      <button onclick={resetMagic} class="btn-secondary">
+        🔄 Reset Magic
+      </button>
+    </div>
+  </div>
 
-  {#if analysis}
-    <div class="results">
-      <h2>Results for @{username}</h2>
+  <div class="gallery-section">
+    <h2>Unicorn Gallery</h2>
+    <p>Click on a unicorn to learn about their special powers!</p>
+    
+    <div class="unicorn-grid">
+      {#each unicorns as unicorn}
+        <button 
+          class="unicorn-card" 
+          class:selected={selectedUnicorn?.id === unicorn.id}
+          onclick={() => selectUnicorn(unicorn)}
+        >
+          <div class="unicorn-emoji">{unicorn.emoji}</div>
+          <h3>{unicorn.name}</h3>
+          <p class="unicorn-color">{unicorn.color}</p>
+        </button>
+      {/each}
+    </div>
 
-      <div class="comparison-section">
-        <h3>PR Rate Comparison</h3>
-        <div class="stats-grid">
-          <div class="stat-card current">
-            <h4>Current Period</h4>
-            <p class="period">{analysis.current.startDate} to {analysis.current.endDate}</p>
-            <p class="big-number">{analysis.current.prsPerMonth}</p>
-            <p class="label">PRs per month</p>
-            <div class="details">
-              <p><strong>{analysis.current.totalPRs}</strong> total PRs</p>
-              <p><strong>{analysis.current.mergedPRs}</strong> merged ({analysis.current.mergeRate}%)</p>
-              <p><strong>{analysis.current.closedPRs}</strong> closed without merge</p>
-              <p><strong>{analysis.current.openPRs}</strong> still open</p>
-            </div>
-          </div>
+    {#if selectedUnicorn}
+      <div class="unicorn-details">
+        <h3>✨ {selectedUnicorn.name} ✨</h3>
+        <p><strong>Color:</strong> {selectedUnicorn.color}</p>
+        <p><strong>Special Power:</strong> {selectedUnicorn.power}</p>
+        <p class="detail-emoji">{selectedUnicorn.emoji} {selectedUnicorn.emoji} {selectedUnicorn.emoji}</p>
+      </div>
+    {/if}
+  </div>
 
-          <div class="stat-card previous">
-            <h4>Previous Period</h4>
-            <p class="period">{analysis.previous.startDate} to {analysis.previous.endDate}</p>
-            <p class="big-number">{analysis.previous.prsPerMonth}</p>
-            <p class="label">PRs per month</p>
-            <div class="details">
-              <p><strong>{analysis.previous.totalPRs}</strong> total PRs</p>
-              <p><strong>{analysis.previous.mergedPRs}</strong> merged ({analysis.previous.mergeRate}%)</p>
-              <p><strong>{analysis.previous.closedPRs}</strong> closed without merge</p>
-              <p><strong>{analysis.previous.openPRs}</strong> still open</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="change-card" style="color: {getChangeColor(analysis.rateChange)}">
-          <p class="change-icon">{getChangeIcon(analysis.rateChange)}</p>
-          <p class="change-value">
-            {analysis.rateChange > 0 ? '+' : ''}{analysis.rateChange} PRs/month
-          </p>
-          <p class="change-percent">
-            ({analysis.rateChangePercent > 0 ? '+' : ''}{analysis.rateChangePercent}% change)
-          </p>
-        </div>
+  <div class="facts-section">
+    <h2>🌟 Unicorn Facts 🌟</h2>
+    <div class="facts-grid">
+      <div class="fact-card">
+        <h4>🦄 Origins</h4>
+        <p>Unicorns are legendary creatures that have been part of folklore for thousands of years!</p>
+      </div>
+      <div class="fact-card">
+        <h4>🌈 Rainbow Magic</h4>
+        <p>Unicorns are often associated with rainbows and can create them with their magical horns!</p>
+      </div>
+      <div class="fact-card">
+        <h4>✨ Sparkle Power</h4>
+        <p>Everything a unicorn touches becomes more magical and sparkly!</p>
       </div>
     </div>
-  {/if}
+  </div>
 </main>
 
 <style>
@@ -168,174 +128,269 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
+    background: linear-gradient(135deg, #fef9ff 0%, #ffeef8 100%);
+    min-height: 100vh;
   }
 
   h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     margin-bottom: 0.5rem;
+    text-align: center;
+    background: linear-gradient(45deg, #ff69b4, #9370db, #4169e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .subtitle {
-    font-size: 1.1rem;
-    color: #666;
+    font-size: 1.2rem;
+    color: #9370db;
     margin-bottom: 2rem;
+    text-align: center;
+    font-weight: 500;
   }
 
   h2 {
     font-size: 2rem;
     margin-top: 2rem;
     margin-bottom: 1rem;
+    color: #9370db;
+    text-align: center;
   }
 
   h3 {
     font-size: 1.5rem;
     margin-bottom: 1rem;
+    color: #ff69b4;
   }
 
-  .config-section {
-    background: #f5f5f5;
-    padding: 2rem;
-    border-radius: 8px;
+  .magic-meter {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
     margin: 2rem 0;
+    box-shadow: 0 4px 6px rgba(147, 112, 219, 0.2);
+    text-align: center;
   }
 
-  .input-group {
-    margin-bottom: 1.5rem;
+  .magic-meter h3 {
+    margin: 0 0 1rem 0;
+    color: #9370db;
   }
 
-  label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
+  .meter {
+    background: #f0e6ff;
+    border-radius: 20px;
+    height: 30px;
+    overflow: hidden;
+    border: 2px solid #9370db;
   }
 
-  input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    box-sizing: border-box;
+  .meter-fill {
+    background: linear-gradient(90deg, #ff69b4, #9370db, #4169e1);
+    height: 100%;
+    transition: width 0.5s ease;
+    border-radius: 18px;
   }
 
-  input:focus {
-    outline: none;
-    border-color: #0070f3;
+  .sparkles {
+    margin-top: 1rem;
+    font-size: 2rem;
+    animation: sparkle 1s ease-in-out;
   }
 
-  input:disabled {
-    background: #e5e5e5;
-    cursor: not-allowed;
+  @keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.2); }
   }
 
-  small {
-    display: block;
-    margin-top: 0.5rem;
-    color: #666;
+  .counter-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin: 2rem 0;
+    box-shadow: 0 4px 6px rgba(255, 105, 180, 0.2);
+    text-align: center;
   }
 
-  small a {
-    color: #0070f3;
-  }
-
-  .error-message {
-    background: #fee;
-    border: 2px solid #f00;
-    color: #c00;
-    padding: 1rem;
-    border-radius: 4px;
+  .counter-display {
     margin: 1rem 0;
   }
 
-  .results {
-    margin-top: 2rem;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin: 2rem 0;
-  }
-
-  .stat-card {
-    background: white;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    padding: 1.5rem;
-  }
-
-  .stat-card.current {
-    border-color: #0070f3;
-  }
-
-  .stat-card.previous {
-    border-color: #666;
-  }
-
-  .stat-card h4 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.2rem;
-  }
-
-  .period {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-  }
-
   .big-number {
-    font-size: 3rem;
+    font-size: 4rem;
     font-weight: bold;
-    margin: 1rem 0 0.5rem 0;
-    color: #0070f3;
-  }
-
-  .stat-card.previous .big-number {
-    color: #666;
+    margin: 0.5rem 0;
+    background: linear-gradient(45deg, #ff69b4, #9370db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .label {
     color: #666;
-    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
   }
 
-  .details {
-    border-top: 1px solid #eee;
-    padding-top: 1rem;
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
   }
 
-  .details p {
-    margin: 0.5rem 0;
-  }
-
-  .change-card {
-    background: white;
-    border: 2px solid currentColor;
+  button {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    border: none;
     border-radius: 8px;
-    padding: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    background: linear-gradient(45deg, #ff69b4, #9370db);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(147, 112, 219, 0.4);
+  }
+
+  .btn-secondary {
+    background: #f0e6ff;
+    color: #9370db;
+    border: 2px solid #9370db;
+  }
+
+  .btn-secondary:hover {
+    background: #e6d9ff;
+    transform: scale(1.05);
+  }
+
+  .gallery-section {
+    margin: 3rem 0;
+  }
+
+  .gallery-section > p {
     text-align: center;
+    color: #666;
+    margin-bottom: 2rem;
+  }
+
+  .unicorn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .unicorn-card {
+    background: white;
+    border: 3px solid #f0e6ff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .unicorn-card:hover {
+    transform: translateY(-5px);
+    border-color: #9370db;
+    box-shadow: 0 8px 16px rgba(147, 112, 219, 0.3);
+  }
+
+  .unicorn-card.selected {
+    border-color: #ff69b4;
+    background: linear-gradient(135deg, #fff5fb 0%, #f0e6ff 100%);
+    box-shadow: 0 8px 16px rgba(255, 105, 180, 0.4);
+  }
+
+  .unicorn-emoji {
+    font-size: 4rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .unicorn-card h3 {
+    margin: 0.5rem 0;
+    font-size: 1.2rem;
+    color: #9370db;
+  }
+
+  .unicorn-color {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .unicorn-details {
+    background: white;
+    border: 3px solid #ff69b4;
+    border-radius: 12px;
+    padding: 2rem;
     margin-top: 2rem;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
   }
 
-  .change-icon {
-    font-size: 3rem;
-    margin: 0;
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
   }
 
-  .change-value {
+  .unicorn-details h3 {
     font-size: 2rem;
-    font-weight: bold;
-    margin: 1rem 0 0.5rem 0;
+    margin-bottom: 1rem;
   }
 
-  .change-percent {
-    font-size: 1.5rem;
+  .unicorn-details p {
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+    color: #666;
+  }
+
+  .detail-emoji {
+    font-size: 2rem;
+    margin-top: 1rem;
+  }
+
+  .facts-section {
+    margin: 3rem 0;
+  }
+
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .fact-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(147, 112, 219, 0.2);
+    transition: transform 0.3s ease;
+  }
+
+  .fact-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(147, 112, 219, 0.3);
+  }
+
+  .fact-card h4 {
+    color: #9370db;
+    margin: 0 0 1rem 0;
+    font-size: 1.3rem;
+  }
+
+  .fact-card p {
+    color: #666;
+    line-height: 1.6;
     margin: 0;
-  }
-
-  button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
 </style>
